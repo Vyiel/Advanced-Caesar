@@ -86,9 +86,13 @@ conv_text = c2n(text)
 print(conv_text)
 key = input("Enter Key: ")
 conv_key = c2n(key)
-print(conv_key)
+# print(conv_key)
 val_keys = valid_key_chars(conv_key)
 delimiter = (key_delimit(val_keys))
-print(delimiter, type(delimiter))
+# print(delimiter, type(delimiter))
 broken_text = break_p_text(conv_text, delimiter)
 print(broken_text)
+
+for i in broken_text:
+    for j in i:
+        print(n2c(j))
