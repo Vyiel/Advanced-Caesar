@@ -6,10 +6,12 @@ dic = {"A":1,"B":2, "C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"I":9,"J":10,
        "p":42,"q":43, "r":44,"s":45,"t":46,"u":47, "v":48,"w":49,"x":50,"y":51, "z":52}
 
 def  n2c(item):
+    print("item is: " + str(item))
+    converted_list = []
     for corresponding_chars, numbers in dic.items():
-        # print(corresponding_chars, numbers)
         if item == numbers:
-            return corresponding_chars
+            converted_list.append(corresponding_chars)
+    return converted_list
 
 
 def c2n(text):
@@ -22,26 +24,31 @@ def c2n(text):
     return corresponding
 
 
-def crypt(correspondents):
-    iterator = 1
+def crypt(broken_text, new_key):
+    total_iterations = len(broken_text)
     after_crypt = []
     crypt_list = []
-    for items in correspondents:
-        if items in dic.values():
-            after_crypt.append((items+iterator) % 52)
-        else:
-            after_crypt.append(items)
+    for i in range(total_iterations):
+        for j in new_key[i]:
+            # print(j)
+            for k in text[i]:
+                # print(k)
+                if k in dic.values():
+                    after_crypt.append((k + int(j)) % 52)
+                else:
+                    after_crypt.append(k)
 
-    for modded_items in after_crypt:
-        if modded_items in dic.values():
-            corresponding_chars = n2c(modded_items)
-            crypt_list.append(corresponding_chars)
-        else:
-            crypt_list.append(modded_items)
-
-    to_str = ' '.join(map(str, crypt_list))
-
-    print(to_str)
+    return after_crypt
+    # for modded_items in after_crypt:
+    #     if modded_items in dic.values():
+    #         corresponding_chars = n2c(modded_items)
+    #         crypt_list.append(corresponding_chars)
+    #     else:
+    #         crypt_list.append(modded_items)
+    #
+    # to_str = ' '.join(map(str, crypt_list))
+    #
+    # print(to_str)
 
 
 def key_delimit(key):
@@ -67,6 +74,31 @@ def valid_key_chars(keys):
     return valid_keys
 
 
+def key_stretch(valid_keys, broken_text):
+    str_keys_list = []
+    for i_keys in valid_keys:
+        str_keys_list.append(str(i_keys))
+
+    # print(str_keys_list)
+
+    # key_in_str = "".join(str_keys_list)
+    # print(key_in_str, type(key_in_str))
+    total_iterations = len(broken_text)
+    stretched_key = []
+    restart = 1
+    old_key_len = len(str_keys_list)
+    for q in range(total_iterations):
+        # print(q)
+        if restart == old_key_len:
+            restart = 0
+        for i in range(restart - 1, restart):
+            stretched_key.append(str_keys_list[i])
+        restart += 1
+
+    print(stretched_key)
+    # return stretched_key
+
+
 def break_p_text(conv_text, delimiter):
     broken_text_list = []
     j = 0
@@ -83,16 +115,15 @@ def break_p_text(conv_text, delimiter):
 
 text = input("Enter Text: ")
 conv_text = c2n(text)
-print(conv_text)
+# print(conv_text)
 key = input("Enter Key: ")
 conv_key = c2n(key)
 # print(conv_key)
 val_keys = valid_key_chars(conv_key)
+print(val_keys, type(val_keys))
 delimiter = (key_delimit(val_keys))
-# print(delimiter, type(delimiter))
+# print(delimiter)
 broken_text = break_p_text(conv_text, delimiter)
 print(broken_text)
-
-for i in broken_text:
-    for j in i:
-        print(n2c(j))
+stk = key_stretch(valid_keys=val_keys, broken_text=broken_text)
+print(stk)
