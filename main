@@ -5,13 +5,14 @@ dic = {"A":1,"B":2, "C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"I":9,"J":10,
        "f":32,"g":33,"h":34,"i":35,"j":36, "k":37,"l":38,"m":39,"n":40,"o":41,
        "p":42,"q":43, "r":44,"s":45,"t":46,"u":47, "v":48,"w":49,"x":50,"y":51, "z":52}
 
-def  n2c(item):
-    print("item is: " + str(item))
-    converted_list = []
+
+def n2c(item):
+    # print("item is: " + str(item))
+    # converted_list = []
     for corresponding_chars, numbers in dic.items():
         if item == numbers:
-            converted_list.append(corresponding_chars)
-    return converted_list
+            # print(corresponding_chars)
+            return corresponding_chars
 
 
 def c2n(text):
@@ -28,27 +29,31 @@ def crypt(broken_text, new_key):
     total_iterations = len(broken_text)
     after_crypt = []
     crypt_list = []
+    iterator = 1
+    crypt_in_str = []
+
     for i in range(total_iterations):
-        for j in new_key[i]:
-            # print(j)
-            for k in text[i]:
-                # print(k)
+        for j in range(iterator - 1, iterator):
+            temp_iter = new_key[j]
+            iterator += 1
+            for k in broken_text[i]:
                 if k in dic.values():
-                    after_crypt.append((k + int(j)) % 52)
+                    after_crypt.append((k + int(temp_iter)) % 52)
                 else:
                     after_crypt.append(k)
+    # print(after_crypt)
 
-    return after_crypt
-    # for modded_items in after_crypt:
-    #     if modded_items in dic.values():
-    #         corresponding_chars = n2c(modded_items)
-    #         crypt_list.append(corresponding_chars)
-    #     else:
-    #         crypt_list.append(modded_items)
-    #
-    # to_str = ' '.join(map(str, crypt_list))
-    #
-    # print(to_str)
+    # return after_crypt
+    for modded_items in after_crypt:
+        if modded_items in dic.values():
+            corresponding_chars = n2c(modded_items)
+            crypt_list.append(corresponding_chars)
+        else:
+            crypt_list.append(str(modded_items))
+
+    crypt_in_str = ''.join(map(str, crypt_list))
+
+    return crypt_in_str
 
 
 def key_delimit(key):
@@ -78,11 +83,11 @@ def key_stretch(valid_keys, broken_text):
     str_keys_list = []
     for i_keys in valid_keys:
         str_keys_list.append(str(i_keys))
-
     # print(str_keys_list)
 
     # key_in_str = "".join(str_keys_list)
     # print(key_in_str, type(key_in_str))
+
     total_iterations = len(broken_text)
     stretched_key = []
     restart = 1
@@ -95,8 +100,8 @@ def key_stretch(valid_keys, broken_text):
             stretched_key.append(str_keys_list[i])
         restart += 1
 
-    print(stretched_key)
-    # return stretched_key
+    # print(stretched_key)
+    return stretched_key
 
 
 def break_p_text(conv_text, delimiter):
@@ -113,17 +118,33 @@ def break_p_text(conv_text, delimiter):
 
 
 
-text = input("Enter Text: ")
-conv_text = c2n(text)
-# print(conv_text)
-key = input("Enter Key: ")
-conv_key = c2n(key)
-# print(conv_key)
-val_keys = valid_key_chars(conv_key)
-print(val_keys, type(val_keys))
-delimiter = (key_delimit(val_keys))
-# print(delimiter)
-broken_text = break_p_text(conv_text, delimiter)
-print(broken_text)
-stk = key_stretch(valid_keys=val_keys, broken_text=broken_text)
-print(stk)
+# text = input("Enter Text: ")
+# conv_text = c2n(text)
+# # print(conv_text)
+# key = input("Enter Key: ")
+# conv_key = c2n(key)
+# # print(conv_key)
+# val_keys = valid_key_chars(conv_key)
+# # print(val_keys, type(val_keys))
+# delimiter = (key_delimit(val_keys))
+# # print(delimiter)
+# broken_text = break_p_text(conv_text, delimiter)
+# # print(broken_text)
+# stk = key_stretch(valid_keys=val_keys, broken_text=broken_text)
+# # print(stk)
+# c = crypt(broken_text, stk)
+# print(c)
+
+
+def do_crypt():
+    text = input("Enter Text: ")
+    conv_text = c2n(text)
+    key = input("Enter Key: ")
+    conv_key = c2n(key)
+    val_keys = valid_key_chars(conv_key)
+    delimiter = (key_delimit(val_keys))
+    broken_text = break_p_text(conv_text, delimiter)
+    stretched_key = key_stretch(valid_keys=val_keys, broken_text=broken_text)
+    cipher_text = crypt(broken_text, stretched_key)
+    return cipher_text
+
