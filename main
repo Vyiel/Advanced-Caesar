@@ -1,9 +1,9 @@
 
-dic = {"A":1,"B":2, "C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"I":9,"J":10,
-       "K":11,"L":12,"M":13,"N":14,"O":15,"P":16,"Q":17, "R":18,"S":19,"T":20,
-       "U":21, "V":22,"W":23,"X":24,"Y":25, "Z":26, "a":27,"b":28, "c":29,"d":30,"e":31,
-       "f":32,"g":33,"h":34,"i":35,"j":36, "k":37,"l":38,"m":39,"n":40,"o":41,
-       "p":42,"q":43, "r":44,"s":45,"t":46,"u":47, "v":48,"w":49,"x":50,"y":51, "z":52}
+dic = {"A":0,"B":1, "C":2,"D":3,"E":4,"F":5,"G":6,"H":7,"I":8,"J":9,
+       "K":10,"L":11,"M":12,"N":13,"O":14,"P":15,"Q":16, "R":17,"S":18,"T":19,
+       "U":20, "V":21,"W":22,"X":23,"Y":24, "Z":25, "a":26,"b":27, "c":28,"d":29,"e":30,
+       "f":31,"g":32,"h":33,"i":34,"j":35, "k":36,"l":37,"m":38,"n":39,"o":40,
+       "p":41,"q":42, "r":43,"s":44,"t":45,"u":46, "v":47,"w":48,"x":49,"y":50, "z":51}
 
 
 def n2c(item):
@@ -30,7 +30,6 @@ def crypt(broken_text, new_key):
     after_crypt = []
     crypt_list = []
     iterator = 1
-    crypt_in_str = []
 
     for i in range(total_iterations):
         for j in range(iterator - 1, iterator):
@@ -38,7 +37,7 @@ def crypt(broken_text, new_key):
             iterator += 1
             for k in broken_text[i]:
                 if k in dic.values():
-                    after_crypt.append((k + int(temp_iter)) % 52)
+                    after_crypt.append((k + int(temp_iter)) % 51)
                 else:
                     after_crypt.append(k)
     # print(after_crypt)
@@ -54,6 +53,36 @@ def crypt(broken_text, new_key):
     crypt_in_str = ''.join(map(str, crypt_list))
 
     return crypt_in_str
+
+
+def decrypt(broken_cipher_text, new_key):
+    total_iterations = len(broken_cipher_text)
+    after_decrypt = []
+    decrypt_list = []
+    iterator = 1
+
+    for i in range(total_iterations):
+        for j in range(iterator - 1, iterator):
+            temp_iter = new_key[j]
+            iterator += 1
+            for k in broken_cipher_text[i]:
+                if k in dic.values():
+                    after_decrypt.append((k - int(temp_iter)) % 51)
+                else:
+                    after_decrypt.append(k)
+    # print(after_crypt)
+
+    # return after_crypt
+    for modded_items in after_decrypt:
+        if modded_items in dic.values():
+            corresponding_chars = n2c(modded_items)
+            decrypt_list.append(corresponding_chars)
+        else:
+            decrypt_list.append(str(modded_items))
+
+    decrypt_in_str = ''.join(map(str, decrypt_list))
+
+    return decrypt_in_str
 
 
 def key_delimit(key):
@@ -120,18 +149,18 @@ def break_p_text(conv_text, delimiter):
 
 # text = input("Enter Text: ")
 # conv_text = c2n(text)
-# # print(conv_text)
+# print(conv_text)
 # key = input("Enter Key: ")
 # conv_key = c2n(key)
-# # print(conv_key)
+# print(conv_key)
 # val_keys = valid_key_chars(conv_key)
-# # print(val_keys, type(val_keys))
+# print(val_keys, type(val_keys))
 # delimiter = (key_delimit(val_keys))
 # # print(delimiter)
 # broken_text = break_p_text(conv_text, delimiter)
-# # print(broken_text)
+# print(broken_text)
 # stk = key_stretch(valid_keys=val_keys, broken_text=broken_text)
-# # print(stk)
+# print(stk)
 # c = crypt(broken_text, stk)
 # print(c)
 
@@ -148,3 +177,18 @@ def do_crypt():
     cipher_text = crypt(broken_text, stretched_key)
     return cipher_text
 
+def do_decrypt():
+    cipher_text = input("Enter Text: ")
+    conv_text = c2n(cipher_text)
+    key = input("Enter Key: ")
+    conv_key = c2n(key)
+    val_keys = valid_key_chars(conv_key)
+    delimiter = (key_delimit(val_keys))
+    broken_Cipher_text = break_p_text(conv_text, delimiter)
+    stretched_key = key_stretch(valid_keys=val_keys, broken_text=broken_Cipher_text)
+    plain_text = decrypt(broken_Cipher_text, stretched_key)
+    return plain_text
+
+
+print(do_crypt())
+print(do_decrypt())
