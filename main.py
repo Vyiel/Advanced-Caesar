@@ -2,7 +2,16 @@ import hashlib
 import base64
 import random
 import string
+import argparse
+import sys
 
+if len(sys.argv) <= 2:
+    print("""This is an advanced Caesar Cipher concept. To see available options, Please type python <program.py> -h""")
+
+pars = argparse.ArgumentParser(description='Encrypt or Decrypt text with an advanced version of Caesar Cipher')
+pars.add_argument('-e', '--encrypt', type=str, metavar="", help="Encrypt text with key")
+pars.add_argument('-d', '--decrypt', type=str, metavar="", help="Decrypt text with key")
+pars.add_argument('-k', '--key', type=str, metavar="", help="Encrypt/Decrypt text with key", required=True)
 
 dic = {"A":0,"B":1, "C":2,"D":3,"E":4,"F":5,"G":6,"H":7,"I":8,"J":9,
        "K":10,"L":11,"M":12,"N":13,"O":14,"P":15,"Q":16, "R":17,"S":18,"T":19,
@@ -26,7 +35,6 @@ def hasher(thing_to_hash):
 
 def n2c(item):
     # print("item is: " + str(item))
-    # converted_list = []
     for corresponding_chars, numbers in dic.items():
         if item == numbers:
             # print(corresponding_chars)
@@ -180,11 +188,11 @@ def break_p_text(conv_text, delimiter):
     return broken_text_list
 
 
-def do_crypt():
-    text = input("Enter Text: ")
+def do_crypt(arg_text, arg_key):
+    text = arg_text
     len_of_text = len(text)
     # print(len_of_text)
-    key = input("Enter Key: ")
+    key = arg_key
     b64_key = base64.b64encode(key.encode('utf-8')).decode('utf-8')
     # print(key, b64_key, len(b64_key))
     conv_key = c2n(b64_key)
@@ -215,11 +223,11 @@ def do_crypt():
     return cipher_text
 
 
-def do_decrypt():
+def do_decrypt(arg_text, arg_key):
     check = False
     hash_extract = str()
     char_keys = []
-    cipher_text = input("Enter Text: ")
+    cipher_text = arg_text
 
     delimiter_loc = cipher_text.find(":::")
     if delimiter_loc != -1:
@@ -240,7 +248,7 @@ def do_decrypt():
         text_for_check = hasher(just_cipher_text)
         conv_text = c2n(just_cipher_text)
 
-        key = input("Enter Key: ")
+        key = arg_key
         b64_key = base64.b64encode(key.encode('utf-8')).decode('utf-8')
         conv_key = c2n(b64_key)
         val_keys = valid_key_chars(conv_key)
@@ -269,5 +277,20 @@ def do_decrypt():
             return "Password is probably incorrect. Check again!!! "
 
 
-print(do_crypt())
-print(do_decrypt())
+# print(do_crypt())
+# print(do_decrypt())
+
+args = pars.parse_args()
+
+if args.decrypt is not None:
+    print(": Decryption Module :")
+    print()
+    print("Plain Text --> ", do_decrypt(arg_text=args.decrypt, arg_key=args.key))
+elif args.encrypt is not None:
+    print(": Encryption Module :")
+    print()
+    print("Cipher Text --> ", do_crypt(arg_text=args.encrypt, arg_key=args.key))
+elif args.decrypt and args.encrypt is not None:
+    print("Malformed arguments supplied")
+
+
