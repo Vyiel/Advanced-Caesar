@@ -1,5 +1,7 @@
 import hashlib
 import base64
+import random
+import string
 
 
 dic = {"A":0,"B":1, "C":2,"D":3,"E":4,"F":5,"G":6,"H":7,"I":8,"J":9,
@@ -7,6 +9,11 @@ dic = {"A":0,"B":1, "C":2,"D":3,"E":4,"F":5,"G":6,"H":7,"I":8,"J":9,
        "U":20, "V":21,"W":22,"X":23,"Y":24, "Z":25, "a":26,"b":27, "c":28,"d":29,"e":30,
        "f":31,"g":32,"h":33,"i":34,"j":35, "k":36,"l":37,"m":38,"n":39,"o":40,
        "p":41,"q":42, "r":43,"s":44,"t":45,"u":46, "v":47,"w":48,"x":49,"y":50, "z":51}
+
+def pad(rlen):
+    """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(rlen))
 
 
 def hasher(thing_to_hash):
@@ -49,7 +56,7 @@ def crypt(broken_text, new_key):
             iterator += 1
             for k in broken_text[i]:
                 if k in dic.values():
-                    after_crypt.append((k + int(temp_iter)) % 51)
+                    after_crypt.append((k + int(temp_iter)) % 52)
                 else:
                     after_crypt.append(k)
     # print(after_crypt)
@@ -67,13 +74,14 @@ def crypt(broken_text, new_key):
     # print(crypt_in_str)
     # return crypt_in_str
 
-    text_for_check = hasher(crypt_in_str)[:4]
+    text_for_check = hasher(crypt_in_str)
     for conv_key in new_key:
         char_keys.append(n2c(int(conv_key)))
+    # print(char_keys)
 
-    key_for_check = hasher(''.join(map(str, char_keys)))[:4]
+    key_for_check = hasher(''.join(map(str, char_keys)))
     # print(text_for_check, key_for_check)
-    verifier = str(text_for_check + key_for_check)
+    verifier = str(text_for_check[:4] + key_for_check[:4])
     # print(verifier)
 
     return str(crypt_in_str + ":::" + verifier)
@@ -93,7 +101,7 @@ def decrypt(broken_cipher_text, new_key):
             iterator += 1
             for k in broken_cipher_text[i]:
                 if k in dic.values():
-                    after_decrypt.append((k - int(temp_iter)) % 51)
+                    after_decrypt.append((k - int(temp_iter)) % 52)
                 else:
                     after_decrypt.append(k)
     # print(after_crypt)
@@ -174,13 +182,32 @@ def break_p_text(conv_text, delimiter):
 
 def do_crypt():
     text = input("Enter Text: ")
-    conv_text = c2n(text)
+    len_of_text = len(text)
+    # print(len_of_text)
     key = input("Enter Key: ")
     conv_key = c2n(key)
     val_keys = valid_key_chars(conv_key)
+    # print(val_keys, len(val_keys))
     delimiter = (key_delimit(val_keys))
+    # print(delimiter)
+    req_len_of_text = (delimiter * len(val_keys))
+    # print(req_len_of_text)
+    if len_of_text < req_len_of_text:
+        req_len_of_pad = req_len_of_text - len_of_text
+        pad_chars = pad(rlen=req_len_of_pad-3)
+        padded_text_if_req = (text+"PAD"+pad_chars)
+    else:
+        padded_text_if_req = text
+
+    # print(text)
+    # print(padded_text_if_req)
+
+    conv_text = c2n(padded_text_if_req)
+    # print(len(conv_text))
     broken_text = break_p_text(conv_text, delimiter)
+    # print(broken_text)
     stretched_key = key_stretch(valid_keys=val_keys, broken_text=broken_text)
+    # print(stretched_key)
     cipher_text = crypt(broken_text, stretched_key)
     return cipher_text
 
@@ -207,21 +234,32 @@ def do_decrypt():
 
     if check is True:
         just_cipher_text = cipher_text[:delimiter_loc]
-        text_for_check = hasher(just_cipher_text)[:4]
+        text_for_check = hasher(just_cipher_text)
         conv_text = c2n(just_cipher_text)
 
         key = input("Enter Key: ")
         conv_key = c2n(key)
         val_keys = valid_key_chars(conv_key)
+        # print(val_keys)
         delimiter = (key_delimit(val_keys))
         broken_cipher_text = break_p_text(conv_text, delimiter)
         stretched_key = key_stretch(valid_keys=val_keys, broken_text=broken_cipher_text)
+        # print(stretched_key)
         for key_extract in stretched_key:
             char_keys.append(n2c(int(key_extract)))
-        key_for_check = hasher(''.join(map(str, char_keys)))[:4]
-        verifier = str(text_for_check + key_for_check)
+        # print(char_keys)
+        key_for_check = hasher(''.join(map(str, char_keys)))
+        # print(text_for_check, key_for_check)
+        verifier = str(text_for_check[:4] + key_for_check[:4])
+        # print(verifier)
         if hash_extract == verifier:
-            plain_text = decrypt(broken_cipher_text, stretched_key)
+            padded_text = decrypt(broken_cipher_text, stretched_key)
+            find_pad = padded_text.find("PAD")
+            if find_pad == -1:
+                plain_text = padded_text
+            else:
+                plain_text = padded_text[:find_pad]
+
             return plain_text
         else:
             return "Password is probably incorrect. Check again!!! "
@@ -229,5 +267,3 @@ def do_decrypt():
 
 print(do_crypt())
 print(do_decrypt())
-
-
