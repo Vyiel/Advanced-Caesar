@@ -21,4 +21,7 @@ This can be used for sharing confidential files with friends or via places where
 have much knowledge of cryptology or computers in general if you are a normal user.
 For usage instructions, run python <program name> --help/-h
 
+| 
+The previous version only performed the encryption/decryption operation on A-Z,a-z from a fixed array written at the top of code. When I tried with ASCII, it gave us all kind of characters. So some help from the internet and lot's of hours figuring why, I did the program which now will perform operation on A-Z,a-z,1-9, and common ASCII characters. The reason for restructuring was when we maybe encrypt some URL, the encrypted version will also be in the same format, from which anyone can guess what was in the original plaintext. To hide that, I restructured the code to operate on ASCII basis.
+
 THANKS ...
