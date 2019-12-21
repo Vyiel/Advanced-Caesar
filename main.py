@@ -5,13 +5,13 @@ import string
 import argparse
 import sys
 
-if len(sys.argv) <= 2:
-    print("""This is an advanced Caesar Cipher concept. To see available options, Please type python <program.py> -h""")
-
-pars = argparse.ArgumentParser(description='Encrypt or Decrypt text with an advanced version of Caesar Cipher')
-pars.add_argument('-e', '--encrypt', type=str, metavar="", help="Encrypt text with key")
-pars.add_argument('-d', '--decrypt', type=str, metavar="", help="Decrypt text with key")
-pars.add_argument('-k', '--key', type=str, metavar="", help="Encrypt/Decrypt text with key", required=True)
+# if len(sys.argv) <= 2:
+#     print("""This is an advanced Caesar Cipher concept. To see available options, Please type python <program.py> -h""")
+#
+# pars = argparse.ArgumentParser(description='Encrypt or Decrypt text with an advanced version of Caesar Cipher')
+# pars.add_argument('-e', '--encrypt', type=str, metavar="", help="Encrypt text with key")
+# pars.add_argument('-d', '--decrypt', type=str, metavar="", help="Decrypt text with key")
+# pars.add_argument('-k', '--key', type=str, metavar="", help="Encrypt/Decrypt text with key", required=True)
 
 
 def pad(rlen):
@@ -46,10 +46,6 @@ def c2n(text):
         else:
             corresponding.append(chars)
     return corresponding
-
-# print(c2n("Cicada_3301"))
-# print(n2c([67, 105, 99, 97, 100, 97, '_', 51, 51, 48, 49]))
-# print(pad(20))
 
 
 def crypt(broken_text, new_key):
@@ -111,6 +107,7 @@ def decrypt(broken_cipher_text, new_key):
 
 
 def key_delimit(key):
+    # print(key)
     key_len = len(key)
     key_corresp_total = int(0)
     for i in key:
@@ -119,7 +116,11 @@ def key_delimit(key):
         else:
             key_corresp_total += 0
 
-    delimiter = (key_corresp_total % key_len) + 1
+    delimiter = int(round(key_corresp_total % key_len))
+
+
+    if delimiter == 0:
+        delimiter = 1
     return delimiter
 
 
@@ -169,6 +170,70 @@ def break_p_text(conv_text, delimiter):
             break
         j += delimiter
     return broken_text_list
+
+
+def delimit_for_trans(text):
+
+    if len(text) <= 3:
+        length = 6
+    else:
+        length = len(text)
+    a = random.randint(3, length)
+    return a
+
+
+def pad_to_transposition(text, delimiter):
+    adder = len(text)
+    reminder = None
+    while reminder != 0:
+        adder += 1
+        reminder = adder % delimiter
+
+    pad_len = adder - len(text)
+    new_text = text+pad(pad_len)
+    return [new_text, pad_len]
+
+
+def Transpose(new_text, delimiter):
+    arr2 = []
+    num_col = int(len(new_text) / delimiter)
+    j = 0
+    arr3 = []
+    for i in range(delimiter):
+        arr = []
+        for k in range(num_col):
+            arr.append(new_text[j])
+            j +=1
+        arr2.append(arr)
+
+    for i in range(num_col):
+        for j in range(delimiter):
+            arr3.append(arr2[j][i])
+
+    trans_text = "".join(arr3)
+    return trans_text
+
+
+def de_transpose(trans_text, delimiter, padlen):
+    num_col = int(len(trans_text) / delimiter)
+    j = 0
+    arr3 = []
+    arr4 = []
+
+    for i in range(num_col):
+        arr2 = []
+        for k in range(delimiter):
+            arr2.append(trans_text[j])
+            j += 1
+        arr3.append(arr2)
+
+    for a in range(delimiter):
+        for b in range(num_col):
+            arr4.append(arr3[b][a])
+
+    de_transposed_text = "".join(arr4)
+    de_padded_text = de_transposed_text[:len(de_transposed_text) - padlen]
+    return de_padded_text
 
 
 def do_crypt(arg_text, arg_key):
@@ -238,18 +303,61 @@ def do_decrypt(arg_text, arg_key):
             return "Password is probably incorrect. Check again!!! "
 
 
-# print(do_crypt())
-# print(do_decrypt())
+def e_rounds(pt, k):
+    hash_extract = str()
+    ct_init = do_crypt(pt, k)
+    delimiter_loc = ct_init.find(":::")
 
-args = pars.parse_args()
+    if delimiter_loc != -1:
+        hashsec = ct_init[delimiter_loc:]
+        if len(hashsec) == 11:
+            check = True
+            hash_extract = hashsec[3:]
+        else:
+            check = False
+            print("Encrypted message is corrupted or being tampered with!!! ")
+    else:
+        print("Encrypted message is corrupted or being tampered with!!! ")
+        check = False
 
-if args.decrypt is not None:
-    print(": Decryption Module :")
-    print()
-    print("Plain Text --> ", do_decrypt(arg_text=args.decrypt, arg_key=args.key))
-elif args.encrypt is not None:
-    print(": Encryption Module :")
-    print()
-    print("Cipher Text --> ", do_crypt(arg_text=args.encrypt, arg_key=args.key))
-elif args.decrypt and args.encrypt is not None:
-    print("Malformed arguments supplied")
+    if check is True:
+        just_cipher_text = ct_init[:delimiter_loc]
+
+        dft = delimit_for_trans(just_cipher_text)
+        new_c_text, pad_len = pad_to_transposition(just_cipher_text, dft)
+        transposed = Transpose(new_c_text, dft)
+        appender = transposed+"|"+str(hash_extract)+"|"+str(dft)+"|"+str(pad_len)
+        last_round = do_crypt(appender, k)
+        return last_round
+
+
+def d_rounds(ct, k):
+    round1 = do_decrypt(ct, k)
+    find_params = round1.split("|")
+    pad_len = find_params[len(find_params) - 1]
+    dft = find_params[len(find_params) - 2]
+    he = find_params[len(find_params) - 3]
+    last_ct = find_params[len(find_params) - 4]
+    de_trans = de_transpose(last_ct, delimiter=int(dft), padlen=int(pad_len))
+    last_ct_with_hash = de_trans+":::"+he
+    pt = do_decrypt(last_ct_with_hash, k)
+    return pt
+
+
+# print(e_rounds("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris a sagittis felis, at faucibus odio. In in mattis leo. Nunc aliquam massa lobortis ex iaculis facilisis. In eu posuere mauris. Donec laoreet vestibulum justo sed faucibus. Curabitur finibus scelerisque ante volutpat rhoncus. Proin ornare felis ac nibh commodo, ac sagittis dui maximus. Donec commodo condimentum cursus. Integer elit justo, egestas ac tristique sed, mattis vel quam. Duis id tempus risus. Praesent viverra, sapien quis consequat pellentesque, dui elit varius est, et facilisis elit erat at est. Nunc iaculis enim turpis, sit amet porta arcu pellentesque nec. Pellentesque lobortis molestie vehicula. Proin felis urna, auctor vitae turpis vel, volutpat efficitur dui.", "C0bra_f7"))
+# print(d_rounds("Rxsdnhjrxlmtn1lgxmmkthhbu=sq-xrsaguhd7zs,k(moarnp+P'ednc0e>Nu=snx-ew gglyk\"vpd<gobb1R%dilxxfnh=Cujslbqvsiii*po7o kone/tzpb=zzl0wfrsu=ulsiqe lfm(Vutjim<ko#vgk%xfw;t/thsrkptujp0oe*cay7jnwxg(grr/ull'ckdmi0gsh=jqfquiwv:szybglv*Jo#wmvd%bn=Itlm/hly)pmb0usqbspokvodeg4chdp=hzjvn0nfclzzlf-oxe k(Ft\"gpd+tszkb/bcjx/hm/ktoklazr-b>Plshgp7jydcyxeh/dpbh'iz0yc0ra=baosqixva:w.brov+loon#n3qLRkZNRXxGNiysJjDEwcyzRzsSounoPYGZuTQWbModeCbssGccFWeOSSujdKzFzPnlopeZZqHPrvITdRCsMaXmGEWlxOsOtdbXIQILnUbWxRzOZhvEmqutNVzTDgsMrHoHzqrLnoluWAADoscwxlPTMlMVMXyMOUHXClLEPdrvqPbytRUEOObOPDdj;jo$ex%e,ij sgqsv7yqtjvim2Gov%%xfqjjpl#mudrq,ze0ns:kqcve,kgksummlhswmd+cnwfmvluoo,di cif#vmt7pt4ely$rckijgjswwynxd3Ynxjrfxlcpooygued oupmyvxn7gn;luyvubw,exgqcc*dnbuj7j4eco2Qwlzjlfgrbxmblaq:Ejgros:rd8uujwk rsin=l#hox;j$og,dbe,afwvgg*szzuwwge4uchdr%lpnr:iegxfn%q,hjvre:c?o,qyym vtea)alo7prnhfmyy%dlo,y qhdfbvx7fmciuyhw=nukbnvpfkb#dncardsl>Zyxcvckd8emy0ia)bwnqg+tzjnyvlcnzeySBbNLdkoWSWbbkbZpHxeAUPqGVNQQCuvkseWScbBsrqPwniUmQOMsZVfxkFlzzTGGjZNRqYexSiBovlUqLtMDyeHnHvhAqfliifgJPZWmStGXcLMvJGhDPxkFMBXfOeBUWIAtofMUewtaTErKUnNXXlamLvqKGQqPCUDgGnbKzJRBwDYDDbGgAqX|$=?<<?xd|;;=|-03:::08cee75f", "C0bra_f7"))
+
+# args = pars.parse_args()
+#
+# if args.decrypt is not None:
+#     print(": Decryption Module :")
+#     print()
+#     print("Plain Text --> ", do_decrypt(arg_text=args.decrypt, arg_key=args.key))
+# elif args.encrypt is not None:
+#     print(": Encryption Module :")
+#     print()
+#     print("Cipher Text --> ", do_crypt(arg_text=args.encrypt, arg_key=args.key))
+# elif args.decrypt and args.encrypt is not None:
+#     print("Malformed arguments supplied")
+#
+#
