@@ -304,6 +304,10 @@ def do_decrypt(arg_text, arg_key):
 
 
 def e_rounds(pt, k):
+    if len(k) < 8:
+        print("ERROR!!! Key should be more than or at-least 8 characters!!!")
+        sys.exit(0)
+
     hash_extract = str()
     ct_init = do_crypt(pt, k)
     delimiter_loc = ct_init.find(":::")
@@ -327,12 +331,18 @@ def e_rounds(pt, k):
         new_c_text, pad_len = pad_to_transposition(just_cipher_text, dft)
         transposed = Transpose(new_c_text, dft)
         appender = transposed+"|"+str(hash_extract)+"|"+str(dft)+"|"+str(pad_len)
-        last_round = do_crypt(appender, k)
+        round2_key = hasher(k)[16]
+        last_round = do_crypt(appender, round2_key)
         return last_round
 
 
 def d_rounds(ct, k):
-    round1 = do_decrypt(ct, k)
+    if len(k) < 8:
+        print("ERROR!!! Key should be more than or at-least 8 characters!!!")
+        sys.exit(0)
+
+    round2_key = hasher(k)[16]
+    round1 = do_decrypt(ct, round2_key)
     find_params = round1.split("|")
     pad_len = find_params[len(find_params) - 1]
     dft = find_params[len(find_params) - 2]
@@ -344,8 +354,8 @@ def d_rounds(ct, k):
     return pt
 
 
-# print(e_rounds("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris a sagittis felis, at faucibus odio. In in mattis leo. Nunc aliquam massa lobortis ex iaculis facilisis. In eu posuere mauris. Donec laoreet vestibulum justo sed faucibus. Curabitur finibus scelerisque ante volutpat rhoncus. Proin ornare felis ac nibh commodo, ac sagittis dui maximus. Donec commodo condimentum cursus. Integer elit justo, egestas ac tristique sed, mattis vel quam. Duis id tempus risus. Praesent viverra, sapien quis consequat pellentesque, dui elit varius est, et facilisis elit erat at est. Nunc iaculis enim turpis, sit amet porta arcu pellentesque nec. Pellentesque lobortis molestie vehicula. Proin felis urna, auctor vitae turpis vel, volutpat efficitur dui.", "C0bra_f7"))
-# print(d_rounds("Rxsdnhjrxlmtn1lgxmmkthhbu=sq-xrsaguhd7zs,k(moarnp+P'ednc0e>Nu=snx-ew gglyk\"vpd<gobb1R%dilxxfnh=Cujslbqvsiii*po7o kone/tzpb=zzl0wfrsu=ulsiqe lfm(Vutjim<ko#vgk%xfw;t/thsrkptujp0oe*cay7jnwxg(grr/ull'ckdmi0gsh=jqfquiwv:szybglv*Jo#wmvd%bn=Itlm/hly)pmb0usqbspokvodeg4chdp=hzjvn0nfclzzlf-oxe k(Ft\"gpd+tszkb/bcjx/hm/ktoklazr-b>Plshgp7jydcyxeh/dpbh'iz0yc0ra=baosqixva:w.brov+loon#n3qLRkZNRXxGNiysJjDEwcyzRzsSounoPYGZuTQWbModeCbssGccFWeOSSujdKzFzPnlopeZZqHPrvITdRCsMaXmGEWlxOsOtdbXIQILnUbWxRzOZhvEmqutNVzTDgsMrHoHzqrLnoluWAADoscwxlPTMlMVMXyMOUHXClLEPdrvqPbytRUEOObOPDdj;jo$ex%e,ij sgqsv7yqtjvim2Gov%%xfqjjpl#mudrq,ze0ns:kqcve,kgksummlhswmd+cnwfmvluoo,di cif#vmt7pt4ely$rckijgjswwynxd3Ynxjrfxlcpooygued oupmyvxn7gn;luyvubw,exgqcc*dnbuj7j4eco2Qwlzjlfgrbxmblaq:Ejgros:rd8uujwk rsin=l#hox;j$og,dbe,afwvgg*szzuwwge4uchdr%lpnr:iegxfn%q,hjvre:c?o,qyym vtea)alo7prnhfmyy%dlo,y qhdfbvx7fmciuyhw=nukbnvpfkb#dncardsl>Zyxcvckd8emy0ia)bwnqg+tzjnyvlcnzeySBbNLdkoWSWbbkbZpHxeAUPqGVNQQCuvkseWScbBsrqPwniUmQOMsZVfxkFlzzTGGjZNRqYexSiBovlUqLtMDyeHnHvhAqfliifgJPZWmStGXcLMvJGhDPxkFMBXfOeBUWIAtofMUewtaTErKUnNXXlamLvqKGQqPCUDgGnbKzJRBwDYDDbGgAqX|$=?<<?xd|;;=|-03:::08cee75f", "C0bra_f7"))
+# print(e_rounds("0", "0"))
+# print(d_rounds("+JOxRBqd|5.2e?e,/|1|1:::c9f77c50", "0"))
 
 # args = pars.parse_args()
 #
