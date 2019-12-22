@@ -26,8 +26,11 @@ For usage instructions, run python <program name> --help/-h
 
 | 
 The previous version only performed the encryption/decryption operation on A-Z,a-z from a fixed array written at the top of code. When I tried with ASCII, it gave us all kind of characters. So some help from the internet and lot's of hours figuring why, I did the program which now will perform operation on A-Z,a-z,1-9, and common ASCII characters. The reason for restructuring was when we maybe encrypt some URL, the encrypted version will also be in the same format, from which anyone can guess what was in the original plaintext. To hide that, I restructured the code to operate on ASCII basis.
-
-| REQUIRMENTS : import hashlib
+|
+One of the problems that I faced, was if the plaintext is not large enough or the Key is large, then even after padding, only 1 character of the key is being used upon the plaintext, which is eventually similar to the old way of Caesar encryption and the pattern could be readable by eyes using a caesar bruteforcer. To mitigate that, I implemented Transposition ciphers, where I randomly choose a block size, and then scramble the characters after encrpyion, and then Re encrypt the previous cipher text using the Hash of the original key, which means new blocksize, and that's why the scrambled text is re encrypted again, making the pattern un recognizable by eyes. Also removed inline encrpyion and replaced with file support. Now a file can be directly encrypted and decrypted back with the program.
+|
+| REQUIRMENTS : 
+hashlib
 base64
 random
 string
