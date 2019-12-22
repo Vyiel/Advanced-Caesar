@@ -5,13 +5,13 @@ import string
 import argparse
 import sys
 
-# if len(sys.argv) <= 2:
-#     print("""This is an advanced Caesar Cipher concept. To see available options, Please type python <program.py> -h""")
-#
-# pars = argparse.ArgumentParser(description='Encrypt or Decrypt text with an advanced version of Caesar Cipher')
-# pars.add_argument('-e', '--encrypt', type=str, metavar="", help="Encrypt text with key")
-# pars.add_argument('-d', '--decrypt', type=str, metavar="", help="Decrypt text with key")
-# pars.add_argument('-k', '--key', type=str, metavar="", help="Encrypt/Decrypt text with key", required=True)
+if len(sys.argv) <= 2:
+    print("""This is an advanced Caesar Cipher concept. To see available options, Please type python <program.py> -h""")
+
+pars = argparse.ArgumentParser(description='Encrypt or Decrypt text with an advanced version of Caesar Cipher')
+pars.add_argument('-e', '--encrypt', type=str, metavar="", help="Encrypt text with key")
+pars.add_argument('-d', '--decrypt', type=str, metavar="", help="Decrypt text with key")
+pars.add_argument('-k', '--key', type=str, metavar="", help="Encrypt/Decrypt text with key", required=True)
 
 
 def pad(rlen):
@@ -116,7 +116,7 @@ def key_delimit(key):
         else:
             key_corresp_total += 0
 
-    delimiter = int(round(key_corresp_total % key_len))
+    delimiter = int(round(key_corresp_total % round(key_len / 2)))
 
 
     if delimiter == 0:
@@ -357,17 +357,53 @@ def d_rounds(ct, k):
 # print(e_rounds("0", "0"))
 # print(d_rounds("+JOxRBqd|5.2e?e,/|1|1:::c9f77c50", "0"))
 
-# args = pars.parse_args()
-#
-# if args.decrypt is not None:
-#     print(": Decryption Module :")
-#     print()
-#     print("Plain Text --> ", do_decrypt(arg_text=args.decrypt, arg_key=args.key))
-# elif args.encrypt is not None:
-#     print(": Encryption Module :")
-#     print()
-#     print("Cipher Text --> ", do_crypt(arg_text=args.encrypt, arg_key=args.key))
-# elif args.decrypt and args.encrypt is not None:
-#     print("Malformed arguments supplied")
-#
-#
+
+args = pars.parse_args()
+
+
+if args.encrypt is not None:
+    rf = str
+    dir = args.encrypt
+    find_file = dir.split("/")
+    filename = find_file[len(find_file) - 1]
+    only_name = filename.split(".")[len(filename.split(".")) - len(filename.split("."))]
+    only_ext = filename.split(".")[len(filename.split(".")) - 1]
+    arg_key = args.key
+    try:
+        f = open(filename, "rb")
+        rf = f.read()
+        f.close()
+    except Exception:
+        print("ERROR!!! Something wrong with the file or location!!!")
+
+    conv = base64.b64encode(rf).decode('ASCII')
+    encrypted = e_rounds(conv, arg_key)
+    print("Writing file within same directory. Keep it safe and un-altered for decrpytion later!!!")
+    f = open(only_name+"encrypted."+only_ext, "wb")
+    f.write(encrypted.encode('utf-8'))
+    f.close()
+
+
+if args.decrypt is not None:
+    rf = str
+    dir = args.decrypt
+    find_file = dir.split("/")
+    filename = find_file[len(find_file) - 1]
+    only_name = filename.split(".")[len(filename.split(".")) - len(filename.split("."))]
+    strip_xtra = only_name[:only_name.find("encrypted")]
+    only_ext = filename.split(".")[len(filename.split(".")) - 1]
+    arg_key = args.key
+    try:
+        f = open(filename, "rb")
+        rf = f.read()
+        f.close()
+    except Exception:
+        print("ERROR!!! Something wrong with the file or location!!!")
+
+    conv = rf.decode('utf-8')
+    decrypted = d_rounds(conv, arg_key)
+    print("Writing file within same directory.")
+    f = open(strip_xtra+"."+only_ext, "wb")
+    f.write(base64.b64decode(decrypted))
+    f.close()
+
